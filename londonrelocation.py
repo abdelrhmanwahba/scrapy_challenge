@@ -9,13 +9,16 @@ class LondonrelocationSpider(scrapy.Spider):
     allowed_domains = ['londonrelocation.com']
     start_urls = ['https://londonrelocation.com/properties-to-rent/']
 
-    # extracting all areas
     def parse(self, response):
-        areas = response.xpath('//*[@class="gallery-slide-wrap row-flex wrap-flex round-button"]')
-        areas_links = areas[0].xpath('.//h4/a/@href').extract()
-        for area in areas_links:
-            yield scrapy.Request(area, callback=self.extractor)
+        for start_url in self.start_urls:
+            yield Request(url=start_url,
+                          callback=self.parse_area)
 
+    def parse_area(self, response):
+        area_urls = response.xpath('.//div[contains(@class,"area-box-pdh")]//h4/a/@href').extract()
+        for area_url in area_urls:
+            yield Request(url=area_url,
+                          callback=self.extractor)
     # extract data from area
     def extractor(self, response):
         for card in response.xpath('//*[@class="test-inline"]'):
